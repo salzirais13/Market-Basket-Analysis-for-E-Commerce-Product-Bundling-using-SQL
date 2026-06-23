@@ -1,4 +1,3 @@
--- 2. Buat tabel item pesanan (Sesuai olist_order_items_dataset.csv)
 CREATE TABLE olist_order_items (
     order_id VARCHAR(500),
     order_item_id VARCHAR(500),
@@ -9,7 +8,6 @@ CREATE TABLE olist_order_items (
     freight_value VARCHAR(500)
 );
 
--- 3. Buat tabel produk (Sesuai olist_products_dataset.csv)
 CREATE TABLE olist_products (
     product_id VARCHAR(500),
     product_category_name VARCHAR(500),
@@ -22,7 +20,6 @@ CREATE TABLE olist_products (
     product_width_cm VARCHAR(500)
 );
 
--- 4. Buat tabel kamus bahasa (Sesuai product_category_name_translation.csv)
 CREATE TABLE olist_category_translation (
     product_category_name VARCHAR(500),
     product_category_name_english VARCHAR(500)
@@ -32,7 +29,6 @@ CREATE OR REPLACE VIEW v_order_items_english AS
 SELECT 
     oi.order_id,
     oi.product_id,
-    -- Jika terjemahan inggris kosong, gunakan nama asli Portugis. Jika kosong semua, beri tanda 'unknown'
     COALESCE(t.product_category_name_english, p.product_category_name, 'unknown') AS category_english
 FROM olist_order_items oi
 JOIN olist_products p ON oi.product_id = p.product_id
@@ -44,11 +40,7 @@ WITH product_pairs AS (
         b.category_english AS product_b,
         a.order_id
     FROM v_order_items_english a
-    -- Self-join menggunakan order_id yang sama
     JOIN v_order_items_english b ON a.order_id = b.order_id
-    -- FILTER UTAMA: 
-    -- 1. Memastikan tidak memasangkan produk dengan dirinya sendiri (misal: Baju A dengan Baju A)
-    -- 2. Menggunakan tanda '<' agar pasangan tidak terhitung ganda (misal: jika sudah ada paket A-B, tidak perlu memunculkan paket B-A)
     WHERE a.category_english < b.category_english
 )
 SELECT 
